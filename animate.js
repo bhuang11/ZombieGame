@@ -1,66 +1,3 @@
-/**
-   handles the animation and movement of the user
-   /**
-      function handleUserAnimation() {
-     if (CONTROLS.user.forward) {
-       var radians = (Math.PI / 180),
-       //USER.x += USER.speed;
-       USER.y +=  USER.speed;
-     }
-
-     if (CONTROLS.user.backward) {
-       var radians = (Math.PI / 180),
-       //USER.x -= USER.speed * sin;
-       USER.y -=  USER.speed;
-     }
-
-     if (CONTROLS.user.left) {
-       var radians = (Math.PI/180),
-           USER.x -= USER.speed;
-     }
-
-     if (CONTROLS.user.right) {
-       var radians = (Math.PI/180),
-           USER.x += USER.speed;
-     }
-   }
-
-   function RenderNewObject(context) {
-     context.fillRect(NEW_OBJECT.x,NEW_OBJECT.y,50)
-   }
-
-   function HandleNewObjectMovement() {
-     NEW_OBJECT.x += 1;
-     NEW_OBJECT.y += 1;
-   }
-
-     function runGame() {
-     var canvas = document.getElementById('mainCanvas');
-     var context = canvas.getContext('2d');
-     if (GAME.started) {
-
-       // 1 - Reposition the objects
-       handleUserAnimation();
-       HandleNewObjectMovement();
-
-       // 2 - Clear the CANVAS
-       context.clearRect(0, 0, 600, 300);
-
-       // 3 - Draw new items
-       RenderUser(context);
-       RenderNewObject(context);
-
-     } else {
-       context.font = "30px Arial";
-       context.fillText("Game Over      Level " + GAME.level, 135, 200);
-     }
-     window.requestAnimationFrame(runGame);
-   }
-   window.requestAnimationFrame(runGame);
-   /*
-
-
-   */
 
    var canvas = document.getElementById("myCanvas");
    var ctx = canvas.getContext("2d");
@@ -70,8 +7,14 @@
    var dy = -2;
    var paddleHeight = 10;
    var paddleWidth = 75;
-   var paddleY = (canvas.height-paddleHeight)/2;
-   var paddleX = (canvas.width-paddleWidth)/2;
+   var zombieY = 75;
+   var zombieX = Math.random()*1000;
+   var paddleY = (canvas.height-paddleHeight)-30;
+   var paddleX = (canvas.width-paddleWidth)-30;
+   var ballX = (canvas.width-paddleWidth)+5;
+   var ballY = (canvas.height-paddleHeight)-35;
+   var isHit = false;
+   var spacePressed = false;
    var rightPressed = false;
    var upPressed = false;
    var downPressed = false;
@@ -93,6 +36,10 @@
        else if (e.key == "Down" || e.key == "ArrowDown") {
          downPressed = true;
        }
+       else if (e.key == " ")
+       {
+         spacePressed = true;
+       }
 
  }
 
@@ -109,6 +56,24 @@
        else if (e.key == "Down" || e.key == "ArrowDown") {
          downPressed = false;
        }
+       // else if (e.key == " " )
+       //  {
+       //   downPressed = false;
+       // }
+   }
+
+   function drawZombie ()
+   {
+      ctx.beginPath();
+      ctx.arc(zombieX, zombieY, 20, 0, 2 * Math.PI);
+      ctx.fillStyle ="#008000";
+      ctx.fill();
+      ctx.closePath();
+      if (!isHit)
+      {
+        zombieY +=.75;
+      }
+
    }
 
 
@@ -120,24 +85,49 @@
        ctx.closePath();
    }
 
+   function drawBall () {
+      ctx.beginPath();
+      ctx.arc (ballX, ballY, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = "FFFF00";
+      ctx.fill();
+      ctx.closePath();
+   }
+
+   function isHit ()
+   {
+     if ((zombieX-20<=ballX&&ballX<=zombieX+20) && (zombieY-20 <=ballY&&ballY<=zombieY+20))
+     {
+       zombieY=0;
+       zombieX=0;
+     }
+   }
    function draw() {
        ctx.clearRect(0, 0, canvas.width, canvas.height);
        drawPaddle();
 
        if(rightPressed) {
            paddleX += 3;
+           ballX +=3;
            if (paddleX + paddleWidth > canvas.width){
                paddleX = canvas.width - paddleWidth;
            }
        }
        else if(leftPressed) {
            paddleX -= 3;
+           if (spacePressed == false)
+           {
+             ballX -=3;
+           }
            if (paddleX < 0){
                paddleX = 0;
            }
        }
        else if(upPressed) {
            paddleY -= 3;
+           if (spacePressed == false)
+           {
+             ballY -=3;
+           }
            if (paddleY < 0){
                paddleY = 0;
            }
@@ -145,15 +135,35 @@
        }
        else if(downPressed) {
            paddleY += 3;
+           if (spacePressed == false)
+           {
+             ballY +=3;
+           }
+
            if (paddleY + paddleHeight > canvas.height)
            {
              paddleY = canvas.height - paddleHeight;
            }
-
        }
+       else if (spacePressed)
+       {
+         ballY -=3;
+         if (ballY > canvas.height)
+         {
+           ballY = (canvas.height-paddleHeight)-35;
+         }
+       }
+
+
 
        x += dx;
        y += dy;
+
+       drawZombie();
+       drawBall();
+       isHit();
    }
+
+
 
    setInterval(draw, 10);
